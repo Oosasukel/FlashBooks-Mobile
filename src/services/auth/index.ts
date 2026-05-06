@@ -1,4 +1,5 @@
 import { api } from 'core/api/api';
+import { authenticatedApi } from 'core/api/authenticatedApi';
 import { googleAuthService } from 'services/googleAuth';
 
 export const authService = {
@@ -12,5 +13,15 @@ export const authService = {
     );
 
     return { ...response.data, user };
+  },
+  loginWithPassword: async (email: string, password: string) => {
+    const response = await api.post<{ token: string }>(
+      '/api/auth/loginWithPassword',
+      { email, password }
+    );
+    return response.data;
+  },
+  setPassword: async (password: string) => {
+    await authenticatedApi.post('/api/auth/setPassword', { password });
   },
 };

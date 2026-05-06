@@ -15,6 +15,7 @@ export enum RouteName {
   BookList = 'BookList',
   Login = 'Login',
   Subscription = 'Subscription',
+  SetPassword = 'SetPassword',
 }
 
 export type TabRouteParamList = {
@@ -29,6 +30,7 @@ export type StackRouteParamList = {
   [RouteName.BookList]: { title: string; books: Book[] };
   [RouteName.Login]: undefined;
   [RouteName.Subscription]: undefined;
+  [RouteName.SetPassword]: undefined;
 };
 
 export type RouteParamList = TabRouteParamList & StackRouteParamList;

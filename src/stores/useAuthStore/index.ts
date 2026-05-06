@@ -10,6 +10,7 @@ interface AuthState {
   token: string | null;
   user: User | null;
   loginWithGoogle: () => Promise<void>;
+  loginWithPassword: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -29,6 +30,19 @@ export const useAuthStore = create<AuthState>()(
             name: payload.username,
             email: payload.email,
             photo: user.photo || undefined,
+          },
+        });
+      },
+      loginWithPassword: async (email, password) => {
+        const { token } = await authService.loginWithPassword(email, password);
+        const payload = jwtDecode<JwtPayload>(token);
+
+        set({
+          token,
+          user: {
+            id: payload.userId,
+            name: payload.username,
+            email: payload.email,
           },
         });
       },

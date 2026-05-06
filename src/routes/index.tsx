@@ -26,6 +26,7 @@ import { ThemeName } from 'theme/types';
 import { LoadingPage } from 'components/LoadingPage';
 import { ErrorPage } from 'components/ErrorPage';
 import { Config } from 'pages/Home/Config';
+import { SetPassword } from 'pages/SetPassword';
 import { useSubscription } from 'hooks/useSubscription';
 import { SubscriptionProvider } from 'providers/SubscriptionProvider';
 import { IAPListenerProvider } from 'providers/IAPListenerProvider';
@@ -118,6 +119,10 @@ export const LoggedInRoutes = () => {
           <Stack.Screen name={RouteName.Home} component={Home} />
           <Stack.Screen name={RouteName.Reading} component={Reading} />
           <Stack.Screen name={RouteName.BookList} component={BookList} />
+          <Stack.Screen
+            name={RouteName.SetPassword}
+            component={SetPassword}
+          />
         </>
       ) : (
         <Stack.Screen

@@ -3,7 +3,8 @@ import { PageLayout } from 'components/PageLayout';
 import { Typography, TypographyVariant } from 'components/Typography';
 import { useTheme } from 'hooks/useTheme';
 import { View, Image } from 'react-native';
-import { RouteName, RouteParams } from 'routes/types';
+import { RouteName, RouteParams, StackNavigation } from 'routes/types';
+import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from 'stores/useAuthStore';
 import { ThemeName } from 'theme/types';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -18,6 +19,7 @@ export const Config = ({ route }: RouteParams<RouteName.Config>) => {
   const { theme, changeTheme } = useTheme();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
+  const navigation = useNavigation<StackNavigation>();
 
   const handleThemeToggle = () => {
     changeTheme(
@@ -163,6 +165,25 @@ export const Config = ({ route }: RouteParams<RouteName.Config>) => {
               Tema {theme.name === ThemeName.Dark ? 'Claro' : 'Escuro'}
             </Typography>
           </View>
+        </Button>
+
+        {/* Definir/Alterar senha */}
+        <Button
+          variant="ghost"
+          onPress={() => navigation.navigate(RouteName.SetPassword)}
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'flex-start',
+            gap: 8,
+          }}>
+          <MaterialIcons
+            name="lock"
+            size={24}
+            color={theme.colors.button.ghost.color}
+          />
+          <Typography variant={TypographyVariant.ButtonGhost}>
+            Definir senha
+          </Typography>
         </Button>
 
         {/* Botão de Logout */}
