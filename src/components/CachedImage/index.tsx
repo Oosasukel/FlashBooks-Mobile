@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Image, ImageProps } from 'react-native';
-import { getCachedImageUri } from 'utils/imageCache';
+import { getCachedImageUri, invalidateCachedImage } from 'utils/imageCache';
 
 export interface CachedImageProps extends Omit<ImageProps, 'source'> {
   source: { uri: string };
@@ -11,10 +11,12 @@ export const CachedImage: React.FC<CachedImageProps> = ({
   ...rest
 }) => {
   const [resolvedUri, setResolvedUri] = useState<string | null>(null);
+  const retriedRef = useRef(false);
 
   useEffect(() => {
     let isMounted = true;
     setResolvedUri(null);
+    retriedRef.current = false;
     (async () => {
       try {
         const local = await getCachedImageUri(source.uri);
@@ -28,5 +30,23 @@ export const CachedImage: React.FC<CachedImageProps> = ({
     };
   }, [source.uri]);
 
-  return <Image {...rest} source={{ uri: resolvedUri || undefined }} />;
+  const handleError = async () => {
+    if (retriedRef.current) return;
+    retriedRef.current = true;
+    try {
+      await invalidateCachedImage(source.uri);
+      const local = await getCachedImageUri(source.uri);
+      setResolvedUri(local);
+    } catch {
+      setResolvedUri(source.uri);
+    }
+  };
+
+  return (
+    <Image
+      {...rest}
+      source={{ uri: resolvedUri || undefined }}
+      onError={handleError}
+    />
+  );
 };

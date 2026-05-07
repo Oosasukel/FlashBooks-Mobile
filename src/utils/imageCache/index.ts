@@ -31,6 +31,12 @@ function getStableKeyFromUrl(url: string): string {
   }
 }
 
+function getFileUriForRemote(remoteUrl: string): string {
+  const ext = getFileExtensionFromUrl(remoteUrl);
+  const key = getStableKeyFromUrl(remoteUrl);
+  return `${IMAGES_DIR}/${key}.${ext}`;
+}
+
 async function ensureDir(): Promise<void> {
   const info = await FileSystem.getInfoAsync(IMAGES_DIR);
   if (!info.exists) {
@@ -41,9 +47,7 @@ async function ensureDir(): Promise<void> {
 export async function getCachedImageUri(remoteUrl: string): Promise<string> {
   try {
     await ensureDir();
-    const ext = getFileExtensionFromUrl(remoteUrl);
-    const key = getStableKeyFromUrl(remoteUrl);
-    const fileUri = `${IMAGES_DIR}/${key}.${ext}`;
+    const fileUri = getFileUriForRemote(remoteUrl);
 
     const info = await FileSystem.getInfoAsync(fileUri);
     if (info.exists && info.size && info.size > 0) {
@@ -55,9 +59,21 @@ export async function getCachedImageUri(remoteUrl: string): Promise<string> {
       return fileUri;
     }
 
+    // downloadAsync writes the response body to disk regardless of status —
+    // remove the corrupt file so we don't serve it from cache next time.
+    await FileSystem.deleteAsync(fileUri, { idempotent: true });
     return remoteUrl;
   } catch (e) {
     console.warn('[imageCache] error', e);
     return remoteUrl;
+  }
+}
+
+export async function invalidateCachedImage(remoteUrl: string): Promise<void> {
+  try {
+    const fileUri = getFileUriForRemote(remoteUrl);
+    await FileSystem.deleteAsync(fileUri, { idempotent: true });
+  } catch (e) {
+    console.warn('[imageCache] invalidate error', e);
   }
 }
