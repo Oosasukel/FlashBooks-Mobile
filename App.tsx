@@ -7,7 +7,6 @@ import {
 import { ThemeProvider } from 'providers/ThemeProvider';
 import React from 'react';
 import { Routes } from 'routes';
-import { withIAPContext } from 'react-native-iap';
 import { ToastProvider } from 'providers/ToastProvider';
 import { Settings } from 'luxon';
 
@@ -34,4 +33,4 @@ const App = () => {
   );
 };
 
-export default withIAPContext(App);
+export default App;

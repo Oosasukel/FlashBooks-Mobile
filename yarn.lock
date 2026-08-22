@@ -5032,15 +5032,20 @@ react-native-edge-to-edge@1.6.0:
   resolved "https://registry.yarnpkg.com/react-native-edge-to-edge/-/react-native-edge-to-edge-1.6.0.tgz#2ba63b941704a7f713e298185c26cde4d9e4b973"
   integrity sha512-2WCNdE3Qd6Fwg9+4BpbATUxCLcouF6YRY7K+J36KJ4l3y+tWN6XCqAC4DuoGblAAbb2sLkhEDp4FOlbOIot2Og==
 
-react-native-iap@^12.16.2:
-  version "12.16.4"
-  resolved "https://registry.yarnpkg.com/react-native-iap/-/react-native-iap-12.16.4.tgz#52bf9782c0f5210760eec8ae472411ec41af9c90"
-  integrity sha512-3l3/k5ho2hzVCyfwlPRTrdn4gY1ku3dZFN9qJ7giZUBGr3wffciL5WRKxVUs7jQAXOgAtea9JexrMrgvEXSO/w==
+react-native-iap@14.4.11:
+  version "14.4.11"
+  resolved "https://registry.yarnpkg.com/react-native-iap/-/react-native-iap-14.4.11.tgz#455cf45fd29566195e27ad3a66c9b790d47add19"
+  integrity sha512-TX+rmTTIN4oheAgx7X/9lKYJyW0NBF4xT8LrJ4JrIzUo2ZKFj5F7bEbwhUJRDqzI+LFG8UjCZflR9FA68+uiRg==
 
 react-native-is-edge-to-edge@^1.1.6, react-native-is-edge-to-edge@^1.1.7:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/react-native-is-edge-to-edge/-/react-native-is-edge-to-edge-1.2.1.tgz#64e10851abd9d176cbf2b40562f751622bde3358"
   integrity sha512-FLbPWl/MyYQWz+KwqOZsSyj2JmLKglHatd3xLZWskXOpRaio4LfEDEz8E/A6uD8QoTHW6Aobw1jbEwK7KMgR7Q==
+
+react-native-nitro-modules@^0.29.6:
+  version "0.29.8"
+  resolved "https://registry.yarnpkg.com/react-native-nitro-modules/-/react-native-nitro-modules-0.29.8.tgz#05679a9c5962d16657979cf42d270a57ff08cb7e"
+  integrity sha512-SyKIR+MmAZadqFEPwD+wiHoG5Lem3EMtAyzLOJ+mU0JB+1+vHxxLLhcV0THoXoxbMSbf5zWOQYVb+JPCEhNtXg==
 
 react-native-pager-view@6.7.1:
   version "6.7.1"

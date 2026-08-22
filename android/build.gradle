@@ -34,5 +34,20 @@ allprojects {
   }
 }
 
+// No Windows o caminho deste projeto estoura o MAX_PATH (260) ao compilar os
+// modulos nativos C++ do Nitro (react-native-iap 14+): o CMake monta o caminho do
+// .o embutindo o caminho absoluto do fonte, e o ninja falha no mkdir.
+// Encurtar o diretorio de staging do CMake resolve sem exigir LongPathsEnabled.
+if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+  subprojects { subproject ->
+    subproject.afterEvaluate {
+      if (subproject.extensions.findByName('android') != null) {
+        subproject.android.externalNativeBuild.cmake.buildStagingDirectory =
+          new File("C:/.cxx/${subproject.name}")
+      }
+    }
+  }
+}
+
 apply plugin: "expo-root-project"
 apply plugin: "com.facebook.react.rootproject"
