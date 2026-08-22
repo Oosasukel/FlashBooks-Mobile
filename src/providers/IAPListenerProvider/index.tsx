@@ -1,12 +1,6 @@
 import { useSubscription } from 'hooks/useSubscription';
 import React, { useEffect } from 'react';
-import { EmitterSubscription } from 'react-native';
-import {
-  flushFailedPurchasesCachedAsPendingAndroid,
-  purchaseUpdatedListener,
-  finishTransaction,
-} from 'react-native-iap';
-import { useIAP } from 'react-native-iap';
+import { finishTransaction, purchaseUpdatedListener, useIAP } from 'react-native-iap';
 import { subscriptionsService } from 'services/subscriptions';
 import { Toast } from 'toastify-react-native';
 
@@ -23,50 +17,43 @@ export const IAPListenerProvider: React.FC<IAPListenerProviderProps> = ({
   useEffect(() => {
     if (!connected) return;
 
-    let purchaseUpdateSubscription: EmitterSubscription | null = null;
-    // let purchaseErrorSubscription: EmitterSubscription | null = null;
+    // A limpeza de compras pendentes "fantasma" deixou de ser manual: a partir da
+    // v14 a lib configura PendingPurchasesParams no BillingClient por conta própria.
+    const purchaseUpdateSubscription = purchaseUpdatedListener(
+      async (purchase) => {
+        // O JSON original do Play vinha em `transactionReceipt` na v12; na v14 o
+        // mesmo conteúdo (Purchase.originalJson) fica em `dataAndroid`.
+        // Purchase tambem nao e um union discriminado por `platform`, entao a
+        // checagem e pela presenca do campo Android.
+        const receipt =
+          'dataAndroid' in purchase ? purchase.dataAndroid : null;
 
-    // Limpa as compras pendentes "fantasma"
-    flushFailedPurchasesCachedAsPendingAndroid()
-      .then(() => {
-        purchaseUpdateSubscription = purchaseUpdatedListener(
-          async (purchase) => {
-            if (purchase.transactionReceipt) {
-              try {
-                const { subscription } =
-                  await subscriptionsService.verifyPurchase(
-                    JSON.parse(purchase.transactionReceipt)
-                  );
+        if (!receipt) return;
 
-                setSubscription(subscription);
+        try {
+          const { subscription } = await subscriptionsService.verifyPurchase(
+            JSON.parse(receipt)
+          );
 
-                await finishTransaction({ purchase, isConsumable: false });
+          setSubscription(subscription);
 
-                console.log('Transação finalizada com sucesso!');
-              } catch (err) {
-                Toast.show({
-                  type: 'error',
-                  text1: `Ocorreu um erro ao processar a assinatura. ${
-                    err instanceof Error ? err.message : 'Erro desconhecido'
-                  }`,
-                  visibilityTime: 7000,
-                });
-              }
-            }
-          }
-        );
+          await finishTransaction({ purchase, isConsumable: false });
 
-        // purchaseErrorSubscription = purchaseErrorListener((error) => {
-        //   console.warn('Erro na compra:', error);
-        // });
-      })
-      .catch((err) => {
-        console.warn('Erro ao limpar compras pendentes:', err);
-      });
+          console.log('Transação finalizada com sucesso!');
+        } catch (err) {
+          Toast.show({
+            type: 'error',
+            text1: `Ocorreu um erro ao processar a assinatura. ${
+              err instanceof Error ? err.message : 'Erro desconhecido'
+            }`,
+            visibilityTime: 7000,
+          });
+        }
+      }
+    );
 
     return () => {
-      purchaseUpdateSubscription?.remove();
-      // purchaseErrorSubscription?.remove();
+      purchaseUpdateSubscription.remove();
     };
   }, [connected, setSubscription]);
 

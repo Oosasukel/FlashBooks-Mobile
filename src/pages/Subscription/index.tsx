@@ -7,8 +7,8 @@ import { RouteName, RouteParams } from 'routes/types';
 import { TouchableOpacity } from 'react-native';
 import { Button } from 'components/Button';
 import {
-  SubscriptionOfferAndroid,
-  SubscriptionPlatform,
+  ProductSubscriptionAndroidOfferDetails,
+  PurchaseError,
   useIAP,
 } from 'react-native-iap';
 import { env } from 'environment';
@@ -27,20 +27,20 @@ interface SubscriptionDetails {
   months: number;
   discountedPrice: number;
   monthlyPrice: number;
-  subscriptionOffer: SubscriptionOfferAndroid;
+  subscriptionOffer: ProductSubscriptionAndroidOfferDetails;
 }
 
 export const Subscription = ({
   route,
 }: RouteParams<RouteName.Subscription>) => {
   const { theme } = useTheme();
-  const {
-    connected,
-    subscriptions,
-    getSubscriptions,
-    currentPurchaseError,
-    requestSubscription,
-  } = useIAP();
+  // Na v14 o erro de compra deixou de ser exposto como estado do hook e passou a
+  // ser entregue pelo callback onPurchaseError.
+  const [currentPurchaseError, setCurrentPurchaseError] =
+    useState<PurchaseError | null>(null);
+  const { connected, subscriptions, fetchProducts, requestPurchase } = useIAP({
+    onPurchaseError: setCurrentPurchaseError,
+  });
 
   const [selectedPlanId, setSelectedPlanId] = useState(PlanId.Trimestral);
 
@@ -48,24 +48,28 @@ export const Subscription = ({
     if (!subscriptions) return [];
 
     const premiumSubscription = subscriptions.find(
-      (subscription) => subscription.productId === premiumSubscriptionSku
+      (subscription) => subscription.id === premiumSubscriptionSku
     );
 
     if (!premiumSubscription) return [];
 
-    if (premiumSubscription.platform !== SubscriptionPlatform.android) {
+    // Product deixou de ser um union discriminado por `platform` na v14, então a
+    // checagem de plataforma passa a ser pela presença do campo Android.
+    if (!('subscriptionOfferDetailsAndroid' in premiumSubscription)) {
       return [];
     }
 
-    const monthlyPlan = premiumSubscription.subscriptionOfferDetails.find(
+    const offerDetails = premiumSubscription.subscriptionOfferDetailsAndroid;
+
+    const monthlyPlan = offerDetails.find(
       (offer) => offer.basePlanId === PlanId.Monthly
     );
 
-    const trimestralPlan = premiumSubscription.subscriptionOfferDetails.find(
+    const trimestralPlan = offerDetails.find(
       (offer) => offer.basePlanId === PlanId.Trimestral
     );
 
-    const annualPlan = premiumSubscription.subscriptionOfferDetails.find(
+    const annualPlan = offerDetails.find(
       (offer) => offer.basePlanId === PlanId.Annual
     );
 
@@ -121,10 +125,11 @@ export const Subscription = ({
   useEffect(() => {
     if (!connected) return;
 
-    getSubscriptions({
+    fetchProducts({
       skus: [premiumSubscriptionSku],
+      type: 'subs',
     });
-  }, [connected, getSubscriptions]);
+  }, [connected, fetchProducts]);
 
   const handleRequestSubscription = async () => {
     if (!selectedPlanId) return;
@@ -136,13 +141,21 @@ export const Subscription = ({
 
     const { subscriptionOffer } = selectedSubscriptionDetails;
 
-    await requestSubscription({
-      subscriptionOffers: [
-        {
-          sku: premiumSubscriptionSku,
-          offerToken: subscriptionOffer.offerToken,
+    setCurrentPurchaseError(null);
+
+    await requestPurchase({
+      type: 'subs',
+      request: {
+        android: {
+          skus: [premiumSubscriptionSku],
+          subscriptionOffers: [
+            {
+              sku: premiumSubscriptionSku,
+              offerToken: subscriptionOffer.offerToken,
+            },
+          ],
         },
-      ],
+      },
     });
   };
 
@@ -201,10 +214,6 @@ export const Subscription = ({
             display: 'flex',
             gap: 16,
           }}>
-          {subscriptions.map((subscription) => (
-            <View key={subscription.productId}></View>
-          ))}
-
           {availableSubscriptions.map((subscription) => (
             <PlanCard
               key={subscription.id}
